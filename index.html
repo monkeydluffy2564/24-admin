@@ -1,0 +1,1406 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>เกม 24 - แข่งขันหลายคน</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <!-- Font Awesome for icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <style>
+    :root{
+      --bg:#ffffff; --ink:#4b6b88; --ink-soft:#7ca7c8;
+      --tile-bg:#ffffff; --tile-border:#cfefff; --num:#6db6ff;
+      --op-plus:#66cf77; --op-minus:#f3c043; --op-times:#7b7ae6; --op-divide:#f28497;
+      --card-bg:#e9f6ff; --card-border:#9fd7ff; --card-ink:#2f7fb2;
+      --accent:#2c77ff; --shadow:0 6px 16px rgba(43,119,255,.12);
+      --slot-opacity:.35;
+      --select-ring: rgba(44,119,255,.45);
+      --select-bg: transparent;
+      --podium-1: #ffd700;
+      --podium-2: #c0c0c0;
+      --podium-3: #cd7f32;
+    }
+    :root[data-theme="pastel"]{ }
+    :root[data-theme="chalk"]{
+      --bg:#0c241a; --ink:#eaf7e0; --ink-soft:#bfe8c2; --tile-bg:#17382b; --tile-border:#2d6b52; --num:#eaf7e0;
+      --op-plus:#3bcf7b; --op-minus:#f0c96d; --op-times:#8aa6ff; --op-divide:#ff7f9f;
+      --card-bg:#133529; --card-border:#5cbf98; --card-ink:#d7ffe9; --accent:#87e7b2; --select-ring:#87e7b2; --shadow:0 6px 18px rgba(0,0,0,.35);
+    }
+    :root[data-theme="blocks"]{
+      --bg:#fbfbfb; --ink:#2b2b2b; --ink-soft:#6a6a6a; --tile-bg:#ffffff; --tile-border:#e6e6e6; --num:#2d7ef7;
+      --op-plus:#28c76f; --op-minus:#ff9f43; --op-times:#7367f0; --op-divide:#ea5455;
+      --card-bg:#f3f7ff; --card-border:#bcd7ff; --card-ink:#2d7ef7; --accent:#2d7ef7; --select-ring:#2d7ef7; --shadow:none;
+    }
+    :root[data-theme="contrast"]{
+      --bg:#ffffff; --ink:#111111; --ink-soft:#333333; --tile-bg:#ffffff; --tile-border:#000000; --num:#000000;
+      --op-plus:#000000; --op-minus:#555555; --op-times:#999999; --op-divide:#222222;
+      --card-bg:#ffffff; --card-border:#000000; --card-ink:#000000;
+      --accent:#006CFF; --select-ring:#006CFF; --select-bg:#E8F0FF; --shadow:none;
+    }
+    :root[data-theme="neon"]{
+      --bg: radial-gradient(1200px 800px at 30% 10%, #0d1b2a 0%, #000 70%);
+      --ink:#d1e8ff; --ink-soft:#9cc9ff; --tile-bg:#0f2033; --tile-border:#1f3b5b; --num:#76d0ff;
+      --op-plus:#00e5ff; --op-minus:#ff2d95; --op-times:#7b61ff; --op-divide:#ffc300;
+      --card-bg:#0e2238; --card-border:#00e5ff; --card-ink:#9ce6ff; --accent:#00e5ff; --select-ring:#00e5ff; --shadow:0 10px 24px rgba(0, 229, 255, .18);
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%; font-size: 16px;}
+    body{margin:0; background:var(--bg); color:var(--ink); font-family:"Kanit",system-ui,sans-serif; overflow-x: hidden;}
+    .center-container { display:flex; flex-direction: column; align-items:center;justify-content:center; width: 100%; height: 100%; padding: 1rem;}
+    .toast { visibility: hidden; min-width: 250px; background-color: #333; color: #fff; text-align: center; border-radius: 8px; padding: 16px; position: fixed; z-index: 100; left: 50%; transform: translateX(-50%); bottom: 30px; opacity: 0; transition: opacity 0.3s, visibility 0.3s; }
+    .toast.show { visibility: visible; opacity: 1; }
+    
+    /* Join Page Styles */
+    .join-container {
+        width: 100%;
+        max-width: 420px;
+    }
+    .join-card {
+        background: #ffffff;
+        color: #1f2937;
+        padding: 2rem;
+        border-radius: 1rem;
+        width: 100%;
+        box-shadow: 0 10px 25px -5px rgba(0,0,0,.1), 0 10px 10px -5px rgba(0,0,0,.04);
+        text-align: center;
+    }
+    .join-card-icon {
+        font-size: 2rem;
+        margin-bottom: 0.5rem;
+        color: #4b5563;
+    }
+    .join-separator {
+        text-align: center;
+        color: #9ca3af;
+        margin: 1.25rem 0;
+        font-weight: 500;
+    }
+    .join-card h2 { font-size: 1.5rem; font-weight: 700; margin-bottom: 0.25rem; }
+    .join-card p { color: #4b5563; margin-bottom: 1.5rem; }
+    .join-card input { width: 100%; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 0.5rem; margin-bottom: 1rem; text-align: center; font-size: 1rem; }
+    .join-card button { width: 100%; padding: 0.75rem 1rem; border-radius: 0.5rem; border: 0; font-weight: 700; cursor: pointer; color: white; transition: background-color .2s; }
+    .btn-purple { background-color: #4f46e5; }
+    .btn-purple:hover { background-color: #4338ca; }
+    .btn-green { background-color: #22c55e; }
+    .btn-green:hover { background-color: #16a34a; }
+
+    /* Responsive Layout */
+    .app { 
+      display: grid; 
+      grid-template-columns: 1fr; 
+      gap: 1.5rem; 
+      width: 100%;
+      max-width: 1200px;
+      height: 100%;
+      padding: 1rem;
+      margin: 0 auto;
+    }
+    .main-game { display: flex; flex-direction: column; align-items: center; width: 100%; height: 100%; }
+    
+    /* New Game Header */
+    .game-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        width: 100%;
+        max-width: 550px;
+        margin-bottom: 1rem;
+    }
+    .header-left, .header-right {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    .header-left { align-items: flex-start; }
+    .header-right { align-items: flex-end; }
+    .header-center {
+        flex: 1.5;
+        text-align: center;
+    }
+    .icon-btn-group { display: flex; gap: 0.5rem; }
+    .icon-btn {
+        background: var(--tile-bg);
+        border: 2px solid var(--tile-border);
+        color: var(--ink-soft);
+        width: 44px;
+        height: 44px;
+        border-radius: 0.5rem;
+        cursor: pointer;
+        font-size: 1.25rem;
+        transition: all 0.2s;
+    }
+    .icon-btn:hover {
+        border-color: var(--accent);
+        color: var(--accent);
+    }
+    #player-score-display { font-weight: 600; font-size: 1rem; color: var(--ink); }
+    #puzzle-progress { font-weight: 600; font-size: 1rem; color: var(--accent); }
+    .target-box {
+        background: var(--accent);
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: 0.75rem;
+        display: inline-block;
+        margin-bottom: 0.5rem;
+    }
+    .target-box .target-label { font-size: 0.875rem; opacity: 0.9; }
+    .target-box .target-number { font-size: 1.75rem; font-weight: 700; line-height: 1; }
+    #game-timer { font-size: 1.25rem; font-weight: 600; color: var(--ink); }
+
+
+    /* Game Board */
+    #game-board, #player-finished-view {
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+    }
+    .grid{display:grid; grid-template-columns:repeat(2, 1fr); grid-auto-rows:1fr; gap:1rem; justify-content:center; margin: 1rem 0; width: 100%; max-width: 380px; aspect-ratio: 1 / 1;}
+    .tile,.slot{width:100%;height:100%; border-radius:1rem; background:var(--tile-bg); border:4px solid var(--tile-border); display:flex; align-items:center; justify-content:center; font-size: clamp(2.5rem, 10vw, 4rem); font-weight:700; color:var(--num); user-select:none;}
+    .tile { cursor:pointer; transition:transform .08s ease, border-color .15s ease, box-shadow .15s ease; }
+    .tile:hover{box-shadow:var(--shadow)}
+    .tile.sel{border-color:var(--accent); background:var(--select-bg); box-shadow:0 0 0 4px var(--select-ring), var(--shadow)}
+    .slot.empty { background: transparent; border: 4px dashed var(--tile-border); opacity: 0.5; transition: border-color 0.2s ease; }
+    .grid.number-selected .slot.empty { border-color: transparent; }
+    
+    .ops{display:flex; justify-content:center; gap:0.75rem; margin-top:1.5rem; flex-wrap: wrap;}
+    .op{width:60px; height:60px; border-radius:0.75rem; display:flex; align-items:center; justify-content:center; color:#fff; font-weight:900; font-size:1.75rem; cursor:pointer; border:none; transition:transform .08s ease, filter .15s ease}
+    .op:active{ transform:scale(.9) }
+    .op.plus{background:var(--op-plus)}
+    .op.minus{background:var(--op-minus)}
+    .op.times{background:var(--op-times)}
+    .op.divide{background:var(--op-divide)}
+    .op.sel{transform: scale(0.9);}
+    
+    .sidebar { background: var(--card-bg); border: 2px solid var(--card-border); border-radius: 1rem; padding: 1rem; display: flex; flex-direction: column; order: -1; }
+    .leaderboard h3 { color: var(--card-ink); font-weight: 700; font-size: 1.25rem; }
+    .leaderboard.collapsed #player-list { display: none; }
+    .player-row { display: grid; grid-template-columns: 1fr auto; align-items: center; padding: 0.5rem; border-radius: 0.5rem; margin-bottom: 0.25rem; }
+    .player-row.is-me { background-color: rgba(127,127,127, 0.2); border: 1px solid var(--accent); }
+    .player-name { font-weight: 600; color: var(--card-ink); }
+    .player-progress { font-weight: 700; font-size: 1rem; color: var(--accent); text-align: right; }
+    
+    /* Modals & Popups */
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.6); display: flex; align-items: center; justify-content: center; z-index: 50; padding: 1rem;}
+    .modal-content { background: white; color: #1f2937; padding: 1.5rem; border-radius: 1rem; width: 100%; max-width: 400px; box-shadow: 0 18px 42px rgba(0,0,0,.35); text-align: center; }
+    #admin-settings-modal .modal-content { max-width: 450px; text-align: left; padding: 2rem;}
+    .modal-content h2 { font-size: 1.5rem; font-weight: 700; margin-bottom: 0.5rem; }
+    .modal-content p { color: #4b5563; margin-bottom: 1rem; }
+    .modal-content button:disabled { background-color: #9ca3af; cursor: not-allowed; }
+    .modal-content input { width: 100%; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 0.5rem; margin-bottom: 1rem; text-align: center; font-size: 1rem; }
+    .modal-content button { width: 100%; padding: 0.75rem 1rem; border-radius: 0.5rem; border: 0; font-weight: 700; cursor: pointer; background-color: #4f46e5; color: white; transition: background-color .2s; }
+    .modal-content button:hover:not(:disabled) { background-color: #4338ca; }
+    .modal-content .secondary-action { background: #e5e7eb; color: #374151; margin-top: 0.5rem; }
+    .modal-content .secondary-action:hover:not(:disabled) { background: #d1d5db; }
+    
+    .host-controls { margin-top: auto; padding-top: 1rem; border-top: 2px solid var(--card-border); }
+    .host-controls button { width: 100%; padding: 0.75rem; border-radius: 0.5rem; border: 0; font-weight: 700; cursor: pointer; background: var(--accent); color: white; }
+    
+    /* Admin Lobby Styles */
+    .admin-lobby-container { text-align: center; padding: 1.25rem; }
+    #game-code-display { font-size: clamp(3rem, 20vw, 5rem); font-weight: bold; color: var(--accent); letter-spacing: clamp(0.25rem, 2vw, 0.625rem); background: var(--card-bg); padding: 1.25rem 2.5rem; border-radius: 1.25rem; border: 4px solid var(--card-border); margin: 1.25rem 0; display: inline-block; }
+    .player-lobby-box {
+        background: rgba(127, 127, 127, 0.1);
+        border-radius: 1rem;
+        padding: 1rem 1.5rem;
+        width: 100%;
+        max-width: 450px;
+        margin: 1rem auto;
+    }
+    .player-lobby-box h3 {
+        font-size: 1.125rem;
+        font-weight: 600;
+        margin-bottom: 1rem;
+    }
+    #lobby-player-name-list {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 0.75rem;
+        min-height: 40px;
+    }
+    .lobby-player-tag {
+        background-color: var(--card-bg);
+        color: var(--card-ink);
+        padding: 0.5rem 1.25rem;
+        border-radius: 9999px;
+        font-weight: 500;
+        border: 1px solid var(--card-border);
+    }
+
+    /* Game Over / Podium Styles */
+    #game-over-view {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        height: 100%;
+        padding: 1rem;
+    }
+    .results-container {
+        width: 100%;
+        max-width: 600px;
+        text-align: center;
+    }
+    .results-container h2 {
+        font-size: 1.75rem;
+        font-weight: 700;
+        margin-bottom: 2rem;
+    }
+    .podium {
+        display: flex;
+        align-items: flex-end;
+        justify-content: center;
+        gap: 0.5rem;
+        height: 250px;
+        margin-bottom: 2rem;
+    }
+    .podium-stand {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-end;
+        color: var(--ink);
+        padding-bottom: 1rem;
+        border-radius: 0.5rem 0.5rem 0 0;
+        box-shadow: var(--shadow);
+    }
+    .podium-stand .player-name { font-size: 1.25rem; font-weight: 600; margin-bottom: 0.25rem; }
+    .podium-stand .player-score { font-size: 1rem; font-weight: 500; }
+    .podium-stand .rank { font-size: 2.5rem; font-weight: 700; margin-top: 0.5rem; }
+    .podium-1 { order: 2; height: 100%; background: var(--podium-1); }
+    .podium-2 { order: 1; height: 80%; background: var(--podium-2); }
+    .podium-3 { order: 3; height: 65%; background: var(--podium-3); }
+    .podium-1 .fa-crown { color: #f9a825; font-size: 2rem; margin-bottom: 0.5rem; }
+
+    .other-rankings {
+        margin-top: 1rem;
+        background: var(--card-bg);
+        border: 2px solid var(--card-border);
+        border-radius: 1rem;
+        padding: 1rem;
+    }
+    .other-rankings h3 { font-size: 1.25rem; font-weight: 600; margin-bottom: 0.75rem; }
+    #other-rankings-list { list-style: none; padding: 0; }
+    #other-rankings-list li {
+        display: flex;
+        justify-content: space-between;
+        padding: 0.5rem;
+        border-radius: 0.375rem;
+    }
+    #other-rankings-list li:nth-child(odd) { background-color: rgba(127,127,127,0.05); }
+    
+    .theme-picker { margin-bottom: 1.25rem; }
+    .theme-picker label { color: var(--card-ink); font-weight: 600; font-size: 1rem; display: block; margin-bottom: 0.375rem;}
+    .theme-select { width: 100%; padding: 0.625rem; border-radius: 0.5rem; border: 2px solid var(--card-border); background: var(--tile-bg); color: var(--ink); font-family: 'Kanit', sans-serif; font-size: 1rem; -webkit-appearance: none; appearance: none; cursor: pointer; }
+    
+    #admin-icon-btn { position: absolute; top: 1rem; right: 1rem; z-index: 20; padding: 0.75rem; border-radius: 9999px; color: var(--ink-soft); background-color: transparent; transition: background-color 0.2s, color 0.2s; border: none; cursor: pointer; }
+    #admin-icon-btn:hover { background-color: rgba(127,127,127, 0.1); color: var(--ink); }
+    
+    .loader { border: 5px solid #f3f3f3; border-top: 5px solid var(--accent); border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    
+    body.player-view .app { grid-template-columns: 1fr; place-items: center; }
+    body.player-view .sidebar { display: none; }
+    body.player-view .main-game { justify-content: flex-start; }
+    
+    .setting-group {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+        margin-top: 0.5rem;
+        margin-bottom: 2rem;
+    }
+    .setting-group label {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        padding: 1.5rem;
+        border: 2px solid #d1d5db;
+        border-radius: 0.5rem;
+        cursor: pointer;
+        transition: background-color 0.2s, border-color 0.2s, color 0.2s;
+        aspect-ratio: 1 / 1;
+        font-weight: 500;
+        color: #4b5563;
+    }
+    .setting-group input[type="radio"]:checked + label {
+        background-color: #4f46e5;
+        border-color: #4f46e5;
+        color: white;
+        font-weight: 600;
+    }
+    .setting-group input[type="radio"] {
+        display: none;
+    }
+
+    /* Tablet and larger screens */
+    @media (min-width: 640px) {
+      .ops{gap:1rem;}
+      .op{width:70px; height:70px;}
+      .icon-btn { width: 50px; height: 50px; }
+      .grid { max-width: 420px; }
+    }
+    
+    /* Laptop and larger screens */
+    @media (min-width: 900px) {
+      .app { 
+        grid-template-columns: 300px 1fr; 
+        height: min(700px, 90vh);
+        padding: 1.25rem;
+      }
+      .sidebar { order: 0; }
+      .grid { max-width: 450px; }
+      .main-game { justify-content: center; }
+    }
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+  
+  <button id="admin-icon-btn" title="ผู้ดูแลระบบ">
+    <i class="fas fa-user-shield fa-lg"></i>
+  </button>
+
+  <!-- Join -->
+  <div id="player-join-view" class="center-container">
+    <h1 class="text-5xl font-bold mb-4" style="color: var(--ink);">24 Battle</h1>
+    <div class="w-full max-w-md flex flex-col items-center gap-4">
+        <!-- Join Competition Card -->
+        <div class="modal-content w-full">
+            <h2><i class="fas fa-users mr-2"></i>เข้าร่วมแข่งขัน</h2>
+            <p>ใส่รหัสเกมและชื่อเล่นของคุณ</p>
+            <input type="text" id="game-code-input" placeholder="รหัสเกม (2 หลัก)" maxlength="2" autocomplete="off" inputmode="numeric" pattern="[0-9]*">
+            <input type="text" id="player-name-input" placeholder="ชื่อเล่น" maxlength="15" autocomplete="nickname">
+            <button id="join-game-btn">เข้าร่วม</button>
+        </div>
+
+        <div class="text-center text-gray-500 my-1 font-semibold" style="color: var(--ink-soft);">หรือ</div>
+
+        <!-- Practice Mode Card -->
+        <div class="modal-content w-full">
+             <h2><i class="fas fa-user mr-2"></i>โหมดฝึกซ้อม</h2>
+             <p>เล่นคนเดียวเพื่อฝึกฝนทักษะ</p>
+             <button id="start-practice-btn" style="background-color: #16a34a;">เริ่มโหมดฝึกซ้อม</button>
+        </div>
+    </div>
+  </div>
+
+  <div id="player-wait-view" class="hidden center-container">
+    <div class="modal-content">
+        <h2 class="text-2xl font-bold">เข้าร่วมสำเร็จ!</h2>
+        <p class="text-lg">กรุณารอผู้ควบคุมเริ่มเกมสักครู่...</p>
+        <div class="loader mt-4 mx-auto"></div>
+    </div>
+  </div>
+
+  <div id="admin-login-modal" class="modal-overlay hidden">
+    <div class="modal-content">
+      <h2>เข้าสู่ระบบผู้ดูแล</h2>
+      <p>กรุณาใส่รหัสผ่าน</p>
+      <input type="password" id="admin-password-input" placeholder="รหัสผ่าน">
+      <button id="admin-login-btn">เข้าสู่ระบบ</button>
+      <button id="admin-back-btn" class="secondary-action">กลับ</button>
+    </div>
+  </div>
+
+  <div id="admin-lobby-view" class="hidden center-container">
+      <div class="admin-lobby-container">
+          <h2 class="text-2xl font-semibold">เริ่มเกม: เกม 24</h2>
+          <p class="text-lg mt-2">ให้นักเรียนเข้าร่วมด้วยรหัสนี้:</p>
+          <div id="game-code-display">--</div>
+          <div class="player-lobby-box">
+              <h3>ผู้เล่นที่เข้าร่วม (<span id="lobby-player-count">0</span>)</h3>
+              <div id="lobby-player-name-list">
+                  <!-- Player names will be rendered here -->
+              </div>
+          </div>
+          <button id="open-settings-btn" class="mt-4 px-8 py-3 text-xl rounded-lg bg-blue-600 text-white hover:bg-blue-700">
+              เริ่มเกม
+          </button>
+      </div>
+  </div>
+  
+  <div id="admin-settings-modal" class="modal-overlay hidden">
+      <div class="modal-content">
+          <h2 class="text-center font-bold text-2xl mb-6">ตั้งค่าเกม</h2>
+          
+          <div class="mb-4">
+              <label for="time-limit-input" class="block text-gray-700 text-sm font-bold mb-2">เวลา (วินาที)</label>
+              <input type="number" id="time-limit-input" value="180" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline text-center">
+          </div>
+
+          <div class="mb-6">
+              <label class="block text-gray-700 text-sm font-bold mb-2">รูปแบบการแสดงผลลัพธ์</label>
+              <div class="setting-group">
+                  <div>
+                      <input type="radio" id="mode-immediate" name="leaderboardMode" value="immediate" checked>
+                      <label for="mode-immediate">แสดงผลทันที</label>
+                  </div>
+                  <div>
+                      <input type="radio" id="mode-wait" name="leaderboardMode" value="wait">
+                      <label for="mode-wait">รอจนหมดเวลา</label>
+                  </div>
+              </div>
+          </div>
+          
+          <button id="start-game-btn" class="flex items-center justify-center w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-4 rounded focus:outline-none focus:shadow-outline text-lg">
+              <i class="fas fa-play mr-2"></i>
+              เริ่มการแข่งขัน
+          </button>
+          <button id="cancel-settings-btn" class="secondary-action w-full mt-3">ยกเลิก</button>
+      </div>
+  </div>
+
+
+  <div id="game-view" class="app hidden">
+    <div class="sidebar">
+      <div class="theme-picker">
+        <label for="themeSelect">ธีม</label>
+        <select id="themeSelect" class="theme-select" aria-label="เลือกธีม">
+          <option value="contrast">ความคมชัดสูง</option>
+          <option value="pastel">พาสเทล</option>
+          <option value="chalk">กระดานดำ</option>
+          <option value="blocks">บล็อกสี</option>
+          <option value="neon">นีออน</option>
+        </select>
+      </div>
+      <div class="leaderboard flex-grow">
+        <div class="flex justify-between items-center mb-2 pb-2 border-b-2" style="border-color: var(--card-border);">
+            <h3>ผู้เล่นในห้อง</h3>
+            <button id="toggle-leaderboard-btn" class="icon-btn !w-10 !h-10 hidden" title="ซ่อน/แสดงรายชื่อผู้เล่น">
+                <i class="fas fa-eye-slash"></i>
+            </button>
+        </div>
+        <div id="player-list"></div>
+      </div>
+       <div id="host-controls" class="host-controls hidden">
+        <button id="end-game-btn">บังคับจบเกม</button>
+      </div>
+    </div>
+    <div class="main-game">
+        <div class="game-header">
+            <div class="header-left">
+                <div class="icon-btn-group">
+                    <button id="home-btn" class="icon-btn" title="ออกจากเกม"><i class="fas fa-home"></i></button>
+                    <button id="reset-btn" class="icon-btn" title="เริ่มใหม่"><i class="fas fa-redo"></i></button>
+                </div>
+                <div id="player-score-display" class="hidden">คะแนน: 0</div>
+            </div>
+            <div class="header-center">
+                <div class="target-box">
+                    <div class="target-label">เป้าหมาย</div>
+                    <div class="target-number">24</div>
+                </div>
+                <div id="game-timer">เวลา: 03:00</div>
+            </div>
+            <div class="header-right">
+                <div id="puzzle-progress">ด่าน 1 / 5</div>
+            </div>
+        </div>
+
+        <div id="game-board">
+            <div class="grid" id="grid"></div>
+            <div class="ops">
+                <button class="op plus" data-op="+">+</button>
+                <button class="op minus" data-op="-">−</button>
+                <button class="op times" data-op="*">×</button>
+                <button class="op divide" data-op="/">÷</button>
+            </div>
+        </div>
+        
+        <div id="player-finished-view" class="hidden text-center">
+            <h2 class="text-2xl font-bold">ทำครบทุกข้อแล้ว!</h2>
+            <p class="text-lg">กรุณารอผู้เล่นคนอื่นสักครู่...</p>
+            <div class="loader mt-4 mx-auto"></div>
+        </div>
+    </div>
+  </div>
+  
+  <div id="game-over-view" class="hidden center-container">
+    <div class="results-container">
+      <h2><i class="fas fa-trophy mr-2"></i>สรุปผลการแข่งขัน!</h2>
+      <div class="podium" id="podium-container">
+        <!-- Podium stands will be rendered here -->
+      </div>
+      <div class="other-rankings" id="other-rankings-container">
+        <h3>อันดับอื่นๆ</h3>
+        <ol id="other-rankings-list"></ol>
+      </div>
+      <button id="back-to-lobby-btn" class="mt-8 px-6 py-2 rounded-lg bg-gray-200 text-gray-700 hover:bg-gray-300">กลับไปที่ล็อบบี้</button>
+    </div>
+  </div>
+
+
+  <div class="toast" id="toast"></div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+    import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import { getFirestore, doc, getDoc, setDoc, updateDoc, onSnapshot, serverTimestamp, runTransaction, deleteDoc, Timestamp, deleteField, increment } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+    // --- Firebase Configuration ---
+    const defaultFirebaseConfig = {
+        apiKey: "AIzaSyAJsk4l8I8uCYpJY8jZLAlRW1w2qLWN-2o",
+        authDomain: "game24-69666.firebaseapp.com",
+        projectId: "game24-69666",
+        storageBucket: "game24-69666.firebasestorage.app",
+        messagingSenderId: "989271279576",
+        appId: "1:989271279576:web:43115bbaeeae31160954ad",
+        measurementId: "G-B1ZTE90SGG"
+    };
+
+    const appId = typeof __app_id !== 'undefined' ? __app_id : 'game24-default';
+    const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : defaultFirebaseConfig;
+
+    const $ = s => document.querySelector(s);
+    const $$ = s => Array.from(document.querySelectorAll(s));
+    
+    // --- Views and Modals ---
+    const playerJoinView = $('#player-join-view');
+    const playerWaitView = $('#player-wait-view');
+    const adminLobbyView = $('#admin-lobby-view');
+    const gameView = $('#game-view');
+    const adminLoginModal = $('#admin-login-modal');
+    const adminSettingsModal = $('#admin-settings-modal');
+    const gameOverView = $('#game-over-view');
+
+    // --- UI Elements ---
+    const grid = $('#grid');
+    const playerList = $('#player-list');
+    const lobbyPlayerNameList = $('#lobby-player-name-list');
+    const lobbyPlayerCount = $('#lobby-player-count');
+    const hostControls = $('#host-controls');
+    const toastEl = $('#toast');
+    const gameCodeDisplay = $('#game-code-display');
+    const gameTimerEl = $('#game-timer');
+    const puzzleProgressEl = $('#puzzle-progress');
+    const playerScoreDisplay = $('#player-score-display');
+    const gameBoard = $('#game-board');
+    const playerFinishedView = $('#player-finished-view');
+    const podiumContainer = $('#podium-container');
+    const otherRankingsList = $('#other-rankings-list');
+    const otherRankingsContainer = $('#other-rankings-container');
+    const toggleLeaderboardBtn = $('#toggle-leaderboard-btn');
+
+
+    // --- State Variables ---
+    let db, auth, userId, currentPlayerName, isHost = false, currentGameId = null, isPracticeMode = false;
+    let unsubscribeGameListener = null;
+    let timerInterval = null;
+    let localBoard = [null, null, null, null];
+    let currentPuzzleNumbers = [];
+    let firstIndex = null;
+    let selectedOp = null;
+    let adminDisplayedPuzzleIndex = 0;
+    let previousGameStatus = null;
+    // Default game settings
+    let gameSettings = {
+        numQuestions: 5,
+        timeLimit: 180,
+        timerMode: 'overall',
+        scoringMode: 'speed',
+        leaderboardMode: 'immediate'
+    };
+
+    // --- Utility Functions ---
+    function toast(msg, t = 2000) {
+      toastEl.textContent = msg;
+      toastEl.classList.add('show');
+      setTimeout(() => toastEl.classList.remove('show'), t);
+    }
+    const rnd = (a, b) => Math.floor(Math.random() * (b - a + 1)) + a;
+    
+    // --- Fraction and Formatting Logic ---
+    function gcd(a, b) {
+        return b === 0 ? a : gcd(b, a % b);
+    }
+
+    const fmt = (frac) => {
+        if (frac.d === 1) {
+            return String(frac.n);
+        }
+        // For smaller tiles, reduce font size for fractions
+        const fontSize = (String(frac.n).length > 2 || String(frac.d).length > 2) ? '2rem' : 'clamp(2.5rem, 10vw, 4rem)';
+        return `<span style="font-size: ${fontSize};">${frac.n}/${frac.d}</span>`;
+    };
+
+
+    // ===== THEME SWITCHER =====
+    const themeKey='g24_theme_mp';
+    const themeSelect=$('#themeSelect');
+    function applyTheme(name){ document.documentElement.setAttribute('data-theme', name); localStorage.setItem(themeKey, name); }
+    const savedTheme = localStorage.getItem(themeKey);
+    const initialTheme = savedTheme || 'contrast';
+    applyTheme(initialTheme);
+    if (themeSelect) {
+        themeSelect.value = initialTheme;
+        themeSelect.addEventListener('change', ()=>applyTheme(themeSelect.value));
+    }
+
+    // --- Game Logic: Puzzle Generation ---
+    function solve24(nums) {
+      function helper(arr) {
+        if (arr.length === 1) return Math.abs(arr[0] - 24) < 1e-6;
+        for (let i = 0; i < arr.length; i++) {
+          for (let j = 0; j < arr.length; j++) {
+            if (i === j) continue;
+            const a = arr[i], b = arr[j];
+            const rest = arr.filter((_, k) => k !== i && k !== j);
+            if (helper([a + b, ...rest]) || helper([a - b, ...rest]) || helper([a * b, ...rest]) || (b !== 0 && helper([a / b, ...rest]))) return true;
+          }
+        }
+        return false;
+      }
+      return helper(nums);
+    }
+
+    function randomSolvable() {
+      for (let t = 0; t < 500; t++) {
+        const arr = [rnd(1, 9), rnd(1, 9), rnd(1, 9), rnd(1, 9)];
+        if (solve24(arr)) return arr;
+      }
+      return [1, 2, 3, 4]; // Fallback
+    }
+    
+    // --- View Management ---
+    function showView(viewName) {
+        [playerJoinView, playerWaitView, adminLoginModal, adminLobbyView, adminSettingsModal, gameView, gameOverView].forEach(v => v.classList.add('hidden'));
+        
+        const adminBtn = $('#admin-icon-btn');
+        if (viewName === 'player-join' || viewName === 'admin-login') {
+            adminBtn.classList.remove('hidden');
+        } else if (isHost) {
+            adminBtn.classList.remove('hidden');
+        } else {
+            adminBtn.classList.add('hidden');
+        }
+
+        if (viewName === 'player-join') playerJoinView.classList.remove('hidden');
+        else if (viewName === 'player-wait') playerWaitView.classList.remove('hidden');
+        else if (viewName === 'admin-login') adminLoginModal.classList.remove('hidden');
+        else if (viewName === 'admin-lobby') adminLobbyView.classList.remove('hidden');
+        else if (viewName === 'admin-settings') adminSettingsModal.classList.remove('hidden');
+        else if (viewName === 'game') {
+            gameView.classList.remove('hidden');
+            // Configure UI based on mode
+            if (isPracticeMode) {
+                $('.sidebar').classList.add('hidden');
+                document.body.classList.add('player-view');
+                document.body.classList.remove('admin-view');
+                $('#player-score-display').classList.add('hidden');
+                $('#puzzle-progress').classList.add('hidden');
+                $('#game-timer').textContent = 'โหมดฝึกซ้อม';
+                $('.main-game').style.justifyContent = 'center';
+            } else {
+                 $('.sidebar').classList.remove('hidden');
+                 $('.main-game').style.justifyContent = '';
+            }
+        }
+        else if (viewName === 'game-over') gameOverView.classList.remove('hidden');
+    }
+
+    // --- Firebase Initialization ---
+    async function initialize() {
+      try {
+        if (!firebaseConfig.apiKey) {
+            toast("Firebase configuration is missing.");
+            console.error("Firebase config is missing. App cannot start.");
+            return;
+        }
+        const app = initializeApp(firebaseConfig);
+        db = getFirestore(app);
+        auth = getAuth(app);
+        
+        onAuthStateChanged(auth, async (user) => {
+          if (user) {
+            userId = user.uid;
+            console.log("Authenticated user:", userId);
+          } else {
+            // Use the provided token or sign in anonymously
+            try {
+              if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                await signInWithCustomToken(auth, __initial_auth_token);
+              } else {
+                await signInAnonymously(auth);
+              }
+            } catch (authError) {
+              console.error("Authentication failed:", authError);
+              toast("Authentication failed. Please refresh.");
+            }
+          }
+        });
+      } catch (error) {
+        console.error("Firebase init failed:", error);
+        toast("การเชื่อมต่อล้มเหลว");
+      }
+    }
+    
+    // --- Host Actions ---
+    async function createGameRoom() {
+        showView('admin-lobby');
+        gameCodeDisplay.textContent = '...';
+        const newGameId = rnd(10, 99).toString();
+        currentGameId = newGameId;
+        const newGameData = {
+            hostId: auth.currentUser.uid,
+            status: 'lobby',
+            players: {},
+            createdAt: serverTimestamp()
+        };
+        const gameRef = doc(db, `artifacts/${appId}/public/data/games`, currentGameId);
+        await setDoc(gameRef, newGameData);
+        gameCodeDisplay.textContent = currentGameId;
+        listenForGameUpdates(currentGameId);
+    }
+    
+    async function handleStartGame() {
+        if (!isHost || !currentGameId) return;
+
+        const timeLimit = parseInt($('#time-limit-input').value, 10) || 180;
+        const selectedMode = document.querySelector('input[name="leaderboardMode"]:checked').value;
+        gameSettings.timeLimit = timeLimit;
+        gameSettings.leaderboardMode = selectedMode;
+
+        adminSettingsModal.classList.add('hidden');
+        
+        const gameRef = doc(db, `artifacts/${appId}/public/data/games`, currentGameId);
+        try {
+            await runTransaction(db, async (transaction) => {
+                const gameDoc = await transaction.get(gameRef);
+                if (!gameDoc.exists()) throw "Game does not exist!";
+
+                const currentPlayers = gameDoc.data().players;
+                const puzzles = Array.from({ length: gameSettings.numQuestions }, () => randomSolvable());
+                
+                const updatePayload = {
+                    status: 'playing',
+                    puzzles: JSON.stringify(puzzles), 
+                    startTime: serverTimestamp(),
+                    gameMode: gameSettings
+                };
+
+                for (const playerName in currentPlayers) {
+                    updatePayload[`players.${playerName}.currentPuzzle`] = 0;
+                    updatePayload[`players.${playerName}.score`] = 0;
+                    updatePayload[`players.${playerName}.finishTime`] = null;
+                    updatePayload[`players.${playerName}.puzzleStartTime`] = serverTimestamp();
+                }
+                
+                transaction.update(gameRef, updatePayload);
+            });
+            showView('game');
+        } catch(e) { 
+            console.error("Error starting game:", e); 
+            toast("เกิดข้อผิดพลาดในการเริ่มเกม"); 
+        }
+    }
+    
+    async function forceEndGame() {
+        if (!isHost || !currentGameId) return;
+        const gameRef = doc(db, `artifacts/${appId}/public/data/games`, currentGameId);
+        const gameSnap = await getDoc(gameRef);
+        if (gameSnap.exists() && gameSnap.data().status === 'playing') {
+             await updateDoc(gameRef, { status: 'finished' });
+        }
+    }
+    
+    async function returnToLobby() {
+        if (!isHost || !currentGameId) return;
+        
+        const gameRef = doc(db, `artifacts/${appId}/public/data/games`, currentGameId);
+        try {
+            await updateDoc(gameRef, { 
+                status: 'lobby',
+                players: {},
+                puzzles: deleteField(),
+                startTime: deleteField(),
+                gameMode: deleteField()
+            });
+            showView('admin-lobby');
+        } catch (e) {
+            console.error("Error returning to lobby:", e);
+            toast("เกิดข้อผิดพลาดในการกลับสู่ล็อบบี้");
+        }
+    }
+
+    // --- Player Actions ---
+    async function handleJoinGame() {
+        const gameCode = $('#game-code-input').value;
+        const name = $('#player-name-input').value.trim();
+        if (!gameCode || !name) return toast("กรุณากรอกข้อมูลให้ครบถ้วน");
+
+        currentGameId = gameCode;
+        currentPlayerName = name;
+        const gameRef = doc(db, `artifacts/${appId}/public/data/games`, currentGameId);
+
+        try {
+            await runTransaction(db, async (transaction) => {
+                const gameDoc = await transaction.get(gameRef);
+                if (!gameDoc.exists()) throw new Error("ไม่พบห้องเกมนี้");
+                
+                const gameData = gameDoc.data();
+                if (gameData.status !== 'lobby') throw new Error("ไม่สามารถเข้าร่วมได้ เกมเริ่มไปแล้ว");
+
+                let finalName = name;
+                if (gameData.players[finalName]) {
+                    finalName = `${name}${rnd(10,99)}`;
+                    toast(`ชื่อซ้ำ, เปลี่ยนเป็น ${finalName} แทน`);
+                }
+                currentPlayerName = finalName;
+                transaction.update(gameRef, { [`players.${finalName}`]: { joined: true } });
+            });
+            
+            toast("เข้าร่วมสำเร็จ! รอสักครู่...");
+            listenForGameUpdates(currentGameId);
+
+        } catch (error) { console.error("Error joining game:", error); toast(error.message); }
+    }
+
+    function startPracticeMode() {
+        isPracticeMode = true;
+        isHost = false;
+        currentPuzzleNumbers = randomSolvable();
+        resetLocalBoard();
+        showView('game');
+    }
+
+    // --- Game State & Rendering ---
+    function listenForGameUpdates(gameId) {
+        if (unsubscribeGameListener) unsubscribeGameListener();
+        
+        const gameRef = doc(db, `artifacts/${appId}/public/data/games`, gameId);
+        unsubscribeGameListener = onSnapshot(gameRef, (docSnap) => {
+            if (!docSnap.exists()) {
+                toast("ห้องเกมถูกปิดแล้ว");
+                if (unsubscribeGameListener) unsubscribeGameListener();
+                if(timerInterval) {
+                    clearInterval(timerInterval);
+                    timerInterval = null;
+                }
+                showView('player-join');
+                document.body.classList.remove('player-view', 'admin-view');
+                return;
+            }
+            const gameData = docSnap.data();
+            const currentStatus = gameData.status;
+
+            if (!isHost && previousGameStatus === 'finished' && currentStatus === 'lobby') {
+                if (unsubscribeGameListener) unsubscribeGameListener();
+                if (timerInterval) clearInterval(timerInterval);
+                currentGameId = null;
+                currentPlayerName = null;
+                toast("แอดมินได้สร้างห้องใหม่แล้ว");
+                showView('player-join');
+                document.body.classList.remove('player-view');
+                previousGameStatus = null;
+                return;
+            }
+            previousGameStatus = currentStatus;
+            
+            if (currentStatus === 'lobby') {
+                if(timerInterval) {
+                    clearInterval(timerInterval);
+                    timerInterval = null;
+                }
+                adminDisplayedPuzzleIndex = 0;
+                if (isHost) {
+                    showView('admin-lobby');
+                    renderLobbyPlayers(gameData.players);
+                } else {
+                    showView('player-wait');
+                }
+            } else if (currentStatus === 'playing') {
+                // Only check for end-game conditions if gameMode is defined
+                if (gameData.gameMode && gameData.gameMode.numQuestions) {
+                    const players = gameData.players || {};
+                    const totalPlayers = Object.keys(players).length;
+                    const finishedPlayersCount = Object.values(players).filter(p => p.currentPuzzle >= gameData.gameMode.numQuestions).length;
+                    const leaderboardMode = gameData.gameMode.leaderboardMode || 'immediate';
+
+                    let shouldEndGame = false;
+                    if (leaderboardMode === 'immediate' && finishedPlayersCount > 0) {
+                        shouldEndGame = true;
+                    } else if (leaderboardMode === 'wait' && totalPlayers > 0 && finishedPlayersCount === totalPlayers) {
+                        shouldEndGame = true;
+                    }
+
+                    if (shouldEndGame) {
+                        if (isHost) {
+                            forceEndGame();
+                        }
+                        return; // Stop processing, wait for 'finished' status
+                    }
+                }
+                
+                // If game is still playing, render the view
+                showView('game');
+                renderPlayingView(gameData);
+            } else if (currentStatus === 'finished') {
+                if(timerInterval) {
+                    clearInterval(timerInterval);
+                    timerInterval = null;
+                }
+                renderGameOverView(gameData);
+            }
+        });
+    }
+
+    function renderLobbyPlayers(players) {
+        const playerNames = Object.keys(players || {});
+        const playerCount = playerNames.length;
+        
+        $('#lobby-player-count').textContent = playerCount;
+        
+        if (playerCount === 0) {
+            lobbyPlayerNameList.innerHTML = `<p class="text-gray-500 text-center w-full">ยังไม่มีใครเข้าร่วม...</p>`;
+        } else {
+            lobbyPlayerNameList.innerHTML = playerNames.map(name => 
+                `<div class="lobby-player-tag">${name}</div>`
+            ).join('');
+        }
+    }
+    
+    function startOrUpdateTimer(gameData) {
+        if (timerInterval) clearInterval(timerInterval);
+        
+        const mode = gameData.gameMode || gameSettings;
+        
+        if (mode.timerMode === 'overall') {
+            const startTimeMs = gameData.startTime.toMillis();
+            timerInterval = setInterval(() => {
+                const elapsed = Math.floor((Date.now() - startTimeMs) / 1000);
+                const remaining = mode.timeLimit - elapsed;
+                if (remaining <= 0) {
+                    clearInterval(timerInterval);
+                    gameTimerEl.textContent = "เวลา: 00:00";
+                    if(isHost) forceEndGame();
+                } else {
+                    const mins = String(Math.floor(remaining / 60)).padStart(2, '0');
+                    const secs = String(remaining % 60).padStart(2, '0');
+                    gameTimerEl.textContent = `เวลา: ${mins}:${secs}`;
+                }
+            }, 500);
+        } else { // per_question
+            const playerForTimer = isHost 
+                ? Object.values(gameData.players).sort((a,b) => (b.currentPuzzle || 0) - (a.currentPuzzle || 0))[0]
+                : gameData.players[currentPlayerName];
+
+            if (!playerForTimer || !playerForTimer.puzzleStartTime) {
+                gameTimerEl.textContent = `เวลาข้อนี้: ${mode.timeLimit}`;
+                return;
+            };
+            const puzzleStartTimeMs = playerForTimer.puzzleStartTime.toMillis();
+
+            timerInterval = setInterval(async () => {
+                const elapsed = Math.floor((Date.now() - puzzleStartTimeMs) / 1000);
+                const remaining = mode.timeLimit - elapsed;
+                 if (remaining <= 0) {
+                    clearInterval(timerInterval);
+                    gameTimerEl.textContent = "หมดเวลา!";
+                    if (!isHost) {
+                        toast("หมดเวลาสำหรับข้อนี้!");
+                        const myData = gameData.players[currentPlayerName];
+                        const nextPuzzle = myData.currentPuzzle + 1;
+                        const updatePayload = { [`players.${currentPlayerName}.currentPuzzle`]: nextPuzzle };
+                        if (nextPuzzle < mode.numQuestions) {
+                            updatePayload[`players.${currentPlayerName}.puzzleStartTime`] = serverTimestamp();
+                        } else {
+                            updatePayload[`players.${currentPlayerName}.finishTime`] = serverTimestamp();
+                        }
+                        await updateDoc(doc(db, `artifacts/${appId}/public/data/games`, currentGameId), updatePayload);
+                    }
+                } else {
+                    gameTimerEl.textContent = `เวลาข้อนี้: ${String(remaining).padStart(2, '0')}`;
+                }
+            }, 500);
+        }
+    }
+
+    function renderPlayingView(gameData) {
+        document.body.classList.toggle('admin-view', isHost);
+        document.body.classList.toggle('player-view', !isHost);
+        
+        startOrUpdateTimer(gameData);
+
+        if (isHost) {
+            renderAdminGameView(gameData);
+        } else {
+            renderPlayerGameView(gameData);
+        }
+    }
+
+    function renderAdminGameView(gameData) {
+        hostControls.classList.remove('hidden');
+        toggleLeaderboardBtn.classList.remove('hidden');
+        
+        const players = gameData.players || {};
+        const sortedPlayers = Object.entries(players).sort((a, b) => (b[1].score || 0) - (a[1].score || 0));
+        
+        playerList.innerHTML = sortedPlayers.map(([name, data]) => `
+            <div class="player-row">
+                <span class="player-name">${name}</span>
+                <span class="player-progress">
+                    ${data.score || 0} คะแนน (${data.currentPuzzle >= gameData.gameMode.numQuestions ? 'สำเร็จ' : `ด่าน ${data.currentPuzzle + 1}`})
+                </span>
+            </div>
+        `).join('');
+
+        const timerMode = gameData.gameMode?.timerMode || 'overall';
+        let puzzleToShowIndex = 0;
+
+        if (timerMode === 'overall') {
+            const leadingPuzzleIndex = Math.max(0, ...Object.values(players).map(p => p.currentPuzzle || 0));
+            if (leadingPuzzleIndex > adminDisplayedPuzzleIndex) {
+                adminDisplayedPuzzleIndex = leadingPuzzleIndex;
+            }
+            puzzleToShowIndex = adminDisplayedPuzzleIndex;
+        } else { // per_question
+             const leadingPlayer = sortedPlayers[0];
+             if(leadingPlayer) {
+                  puzzleToShowIndex = leadingPlayer[1].currentPuzzle || 0;
+             }
+        }
+        
+        puzzleToShowIndex = Math.min(puzzleToShowIndex, gameData.gameMode.numQuestions - 1);
+        
+        puzzleProgressEl.textContent = `แสดงผลด่าน ${puzzleToShowIndex + 1} / ${gameData.gameMode.numQuestions}`;
+        puzzleProgressEl.classList.remove('hidden');
+        const puzzles = JSON.parse(gameData.puzzles);
+        const numbers = puzzles[puzzleToShowIndex];
+        
+        gameBoard.classList.remove('hidden');
+        playerFinishedView.classList.add('hidden');
+        grid.innerHTML = numbers.map(num => `<div class="tile">${num}</div>`).join('');
+        $$('.op').forEach(btn => btn.classList.add('opacity-50', 'cursor-not-allowed'));
+        $('#reset-btn').classList.add('hidden');
+        $('#home-btn').classList.add('hidden');
+    }
+
+    function renderPlayerGameView(gameData) {
+        const myData = gameData.players[currentPlayerName];
+        if (!myData) return;
+
+        playerScoreDisplay.textContent = `คะแนน: ${myData.score || 0}`;
+        playerScoreDisplay.classList.remove('hidden');
+        
+        const leaderboardMode = gameData.gameMode?.leaderboardMode || 'immediate';
+
+        if (myData.currentPuzzle >= gameData.gameMode.numQuestions) {
+            if (leaderboardMode === 'wait') {
+                gameBoard.classList.add('hidden');
+                playerFinishedView.classList.remove('hidden');
+            } else {
+                gameBoard.classList.add('hidden');
+                playerFinishedView.classList.remove('hidden');
+                $('#player-finished-view h2').textContent = 'เสร็จสิ้น!';
+                $('#player-finished-view p').textContent = 'รอผลการแข่งขันสักครู่...';
+            }
+        } else {
+            gameBoard.classList.remove('hidden');
+            playerFinishedView.classList.add('hidden');
+            puzzleProgressEl.textContent = `ด่าน ${myData.currentPuzzle + 1} / ${gameData.gameMode.numQuestions}`;
+            puzzleProgressEl.classList.remove('hidden');
+            
+            const puzzles = JSON.parse(gameData.puzzles);
+            const newNumbers = puzzles[myData.currentPuzzle];
+
+            if (JSON.stringify(currentPuzzleNumbers) !== JSON.stringify(newNumbers)) {
+                currentPuzzleNumbers = [...newNumbers];
+                resetLocalBoard();
+            }
+        }
+    }
+    
+    function renderGameOverView(gameData) {
+        const players = gameData.players || {};
+        const finalRanks = Object.entries(players).sort(([, a], [, b]) => {
+            if (a.score !== b.score) return (b.score || 0) - (a.score || 0);
+            if(b.finishTime && a.finishTime) return a.finishTime.toMillis() - b.finishTime.toMillis();
+            if(b.finishTime) return -1;
+            if(a.finishTime) return 1;
+            return 0;
+        });
+
+        podiumContainer.innerHTML = '';
+        otherRankingsList.innerHTML = '';
+
+        const podiumPlayers = finalRanks.slice(0, 3);
+        const otherPlayers = finalRanks.slice(3);
+
+        podiumPlayers.forEach(([name, data], index) => {
+            const rank = index + 1;
+            const podiumEl = document.createElement('div');
+            podiumEl.className = `podium-stand podium-${rank}`;
+            podiumEl.innerHTML = `
+                ${rank === 1 ? '<i class="fas fa-crown"></i>' : ''}
+                <div class="player-name">${name}</div>
+                <div class="player-score">${data.score || 0} คะแนน</div>
+                <div class="rank">${rank}</div>
+            `;
+            podiumContainer.appendChild(podiumEl);
+        });
+        
+        // Fill in empty podium spots if fewer than 3 players
+        for (let i = finalRanks.length; i < 3; i++) {
+            const rank = i + 1;
+            const emptyPodiumEl = document.createElement('div');
+            emptyPodiumEl.className = `podium-stand podium-${rank}`;
+            podiumContainer.appendChild(emptyPodiumEl);
+        }
+
+
+        if(otherPlayers.length > 0) {
+            otherRankingsContainer.classList.remove('hidden');
+            otherRankingsList.innerHTML = otherPlayers.map(([name, data], index) => `
+                <li>
+                    <span>${index + 4}. ${name}</span>
+                    <span>${data.score || 0} คะแนน</span>
+                </li>
+            `).join('');
+        } else {
+            otherRankingsContainer.classList.add('hidden');
+        }
+        
+        if (isHost) {
+          $('#back-to-lobby-btn').classList.remove('hidden');
+        } else {
+          $('#back-to-lobby-btn').classList.add('hidden');
+        }
+
+        showView('game-over');
+    }
+
+    function renderLocalGrid() {
+        grid.innerHTML = '';
+        
+        // Add or remove class based on selection
+        if (firstIndex !== null) {
+            grid.classList.add('number-selected');
+        } else {
+            grid.classList.remove('number-selected');
+        }
+
+        for (let i = 0; i < 4; i++) {
+            const val = localBoard[i];
+            const tileEl = document.createElement('div');
+            if (val === null) {
+                tileEl.className = 'slot empty';
+            } else {
+                tileEl.className = 'tile' + (i === firstIndex ? ' sel' : '');
+                tileEl.innerHTML = fmt(val);
+                tileEl.addEventListener('click', () => handleTileClick(i));
+            }
+            grid.appendChild(tileEl);
+        }
+        $$('.op').forEach(btn => btn.classList.toggle('sel', btn.dataset.op === selectedOp));
+    }
+    
+    function resetLocalBoard() {
+        localBoard = currentPuzzleNumbers.map(num => ({ n: num, d: 1 }));
+        firstIndex = null;
+        selectedOp = null;
+        renderLocalGrid();
+    }
+    
+    async function handleTileClick(idx) {
+        if (localBoard[idx] === null) return;
+
+        // Deselect if clicking the same tile
+        if (firstIndex === idx) {
+            firstIndex = null;
+            renderLocalGrid();
+            return;
+        }
+
+        if (firstIndex === null || selectedOp === null) {
+            firstIndex = idx;
+            renderLocalGrid();
+            return;
+        }
+
+        const a = localBoard[firstIndex];
+        const b = localBoard[idx];
+        let val;
+        let num, den;
+
+        if (selectedOp === '+') {
+            num = a.n * b.d + b.n * a.d;
+            den = a.d * b.d;
+        } else if (selectedOp === '-') {
+            num = a.n * b.d - b.n * a.d;
+            den = a.d * b.d;
+        } else if (selectedOp === '*') {
+            num = a.n * b.n;
+            den = a.d * b.d;
+        } else if (selectedOp === '/') {
+            if (b.n === 0) { toast('หารด้วยศูนย์ไม่ได้'); return; }
+            num = a.n * b.d;
+            den = a.d * b.n;
+        }
+        
+        if (den < 0) {
+            den = -den;
+            num = -num;
+        }
+        const commonDivisor = gcd(Math.abs(num), Math.abs(den));
+        val = { n: num / commonDivisor, d: den / commonDivisor };
+
+        localBoard[idx] = val;
+        localBoard[firstIndex] = null;
+        firstIndex = idx;
+        selectedOp = null;
+        renderLocalGrid();
+
+        const activeTiles = localBoard.filter(v => v !== null);
+        if (activeTiles.length === 1) {
+            const result = activeTiles[0];
+            if (result.d === 1 && result.n === 24) {
+                // Correct answer
+                if (isPracticeMode) {
+                    toast('ถูกต้อง! โจทย์ข้อต่อไป...');
+                    setTimeout(() => {
+                        currentPuzzleNumbers = randomSolvable();
+                        resetLocalBoard();
+                    }, 1200);
+                    return;
+                }
+
+                const gameRef = doc(db, `artifacts/${appId}/public/data/games`, currentGameId);
+                try {
+                    await runTransaction(db, async (transaction) => {
+                        const gameDoc = await transaction.get(gameRef);
+                        if (!gameDoc.exists() || gameDoc.data().status !== 'playing') return;
+                        
+                        const gameData = gameDoc.data();
+                        const playerData = gameData.players[currentPlayerName];
+                        const gameMode = gameData.gameMode || { scoringMode: 'speed', timerMode: 'overall' };
+                        
+                        let pointsForThisRound = 0;
+                        if (gameMode.scoringMode === 'fixed') {
+                            pointsForThisRound = 100;
+                        } else { // speed-based scoring
+                            if (gameMode.timerMode === 'overall') {
+                                const startTimeMs = gameData.startTime.toMillis();
+                                const elapsedSeconds = Math.floor((Date.now() - startTimeMs) / 1000);
+                                pointsForThisRound = 100 + Math.max(0, gameMode.timeLimit - elapsedSeconds);
+                            } else { // per_question
+                                const puzzleStartTimeMs = playerData.puzzleStartTime.toMillis();
+                                const elapsedSeconds = Math.floor((Date.now() - puzzleStartTimeMs) / 1000);
+                                pointsForThisRound = 100 + Math.max(0, gameMode.timeLimit - elapsedSeconds);
+                            }
+                        }
+
+                        const nextPuzzle = playerData.currentPuzzle + 1;
+                        
+                        const updatePayload = {
+                            [`players.${currentPlayerName}.currentPuzzle`]: nextPuzzle,
+                            [`players.${currentPlayerName}.score`]: increment(pointsForThisRound)
+                        };
+
+                        if (nextPuzzle < gameMode.numQuestions) {
+                            updatePayload[`players.${currentPlayerName}.puzzleStartTime`] = serverTimestamp();
+                        } else {
+                            updatePayload[`players.${currentPlayerName}.finishTime`] = serverTimestamp();
+                        }
+                        
+                        transaction.update(gameRef, updatePayload);
+                    });
+                } catch (e) { console.error("Error advancing puzzle:", e); }
+            } else {
+                // Incorrect answer
+                toast('ลองอีกครั้ง!');
+                setTimeout(() => {
+                    resetLocalBoard();
+                }, 1500);
+            }
+        }
+    }
+    
+    // --- Event Listeners ---
+    $('#admin-icon-btn').addEventListener('click', () => showView('admin-login'));
+    $('#admin-back-btn').addEventListener('click', () => showView('player-join'));
+    
+    $('#admin-login-btn').addEventListener('click', async () => {
+        if ($('#admin-password-input').value === '4') { 
+            isHost = true; 
+            await createGameRoom(); 
+        } else { 
+            toast('รหัสผ่านไม่ถูกต้อง'); 
+        }
+    });
+
+    $('#join-game-btn').addEventListener('click', handleJoinGame);
+    $('#start-practice-btn').addEventListener('click', startPracticeMode);
+    $('#open-settings-btn').addEventListener('click', () => {
+        adminSettingsModal.classList.remove('hidden');
+    });
+    $('#cancel-settings-btn').addEventListener('click', () => {
+        adminSettingsModal.classList.add('hidden');
+    });
+    $('#start-game-btn').addEventListener('click', handleStartGame);
+
+    $('#end-game-btn').addEventListener('click', forceEndGame);
+    $('#back-to-lobby-btn').addEventListener('click', returnToLobby);
+    
+    $('#home-btn').addEventListener('click', () => {
+        isPracticeMode = false; // Reset mode
+        if (unsubscribeGameListener) unsubscribeGameListener();
+        if (timerInterval) clearInterval(timerInterval);
+        currentGameId = null;
+        currentPlayerName = null;
+        showView('player-join');
+    });
+
+    $('#reset-btn').addEventListener('click', resetLocalBoard);
+    
+    $$('.op').forEach(btn => btn.addEventListener('click', () => {
+        const op = btn.dataset.op;
+        if (selectedOp === op) {
+            selectedOp = null; // Deselect if clicking the same operator
+        } else {
+            if (firstIndex === null) {
+                toast('กรุณาเลือกตัวเลขก่อน');
+                return;
+            }
+            selectedOp = op;
+        }
+        renderLocalGrid();
+    }));
+
+    toggleLeaderboardBtn.addEventListener('click', () => {
+        const leaderboardBox = document.querySelector('.leaderboard');
+        leaderboardBox.classList.toggle('collapsed');
+        const icon = toggleLeaderboardBtn.querySelector('i');
+        if (leaderboardBox.classList.contains('collapsed')) {
+            icon.className = 'fas fa-eye';
+        } else {
+            icon.className = 'fas fa-eye-slash';
+        }
+    });
+    
+    // Clean up game room if host leaves the page
+    window.addEventListener('beforeunload', () => {
+        if (isHost && currentGameId) {
+            const gameRef = doc(db, `artifacts/${appId}/public/data/games`, currentGameId);
+            deleteDoc(gameRef);
+        }
+    });
+
+    // --- Initial Load ---
+    initialize();
+    showView('player-join');
+
+  </script>
+</body>
+</html>
