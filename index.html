@@ -1332,7 +1332,7 @@
     $('#admin-back-btn').addEventListener('click', () => showView('player-join'));
     
     $('#admin-login-btn').addEventListener('click', async () => {
-        if ($('#admin-password-input').value === '4') { 
+        if ($('#admin-password-input').value === '') { 
             isHost = true; 
             await createGameRoom(); 
         } else { 
