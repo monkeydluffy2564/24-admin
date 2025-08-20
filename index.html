@@ -1328,7 +1328,11 @@
     }
     
     // --- Event Listeners ---
-    $('#admin-icon-btn').addEventListener('click', () => showView('admin-login'));
+    // --- Event Listeners ---
+$('#admin-icon-btn').addEventListener('click', async () => {
+    isHost = true; 
+    await createGameRoom(); 
+});
     $('#admin-back-btn').addEventListener('click', () => showView('player-join'));
     
     $('#admin-login-btn').addEventListener('click', async () => {
@@ -1404,3 +1408,4 @@
   </script>
 </body>
 </html>
+
