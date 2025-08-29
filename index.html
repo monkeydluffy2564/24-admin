@@ -190,7 +190,7 @@
     /* Modals & Popups */
     .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.6); display: flex; align-items: center; justify-content: center; z-index: 50; padding: 1rem;}
     .modal-content { background: white; color: #1f2937; padding: 1.5rem; border-radius: 1rem; width: 100%; max-width: 400px; box-shadow: 0 18px 42px rgba(0,0,0,.35); text-align: center; }
-    #admin-settings-modal .modal-content { max-width: 450px; text-align: left; padding: 2rem;}
+    #admin-settings-modal .modal-content { max-width: 450px; text-align: left; padding: 1.5rem;}
     .modal-content h2 { font-size: 1.5rem; font-weight: 700; margin-bottom: 0.5rem; }
     .modal-content p { color: #4b5563; margin-bottom: 1rem; }
     .modal-content button:disabled { background-color: #9ca3af; cursor: not-allowed; }
@@ -316,21 +316,21 @@
     .setting-group {
         display: grid;
         grid-template-columns: 1fr 1fr;
-        gap: 1rem;
+        gap: 0.75rem;
         margin-top: 0.5rem;
-        margin-bottom: 2rem;
+        margin-bottom: 1rem;
     }
     .setting-group label {
         display: flex;
         align-items: center;
         justify-content: center;
         text-align: center;
-        padding: 1.5rem;
+        padding: 0.5rem;
         border: 2px solid #d1d5db;
         border-radius: 0.5rem;
         cursor: pointer;
         transition: background-color 0.2s, border-color 0.2s, color 0.2s;
-        aspect-ratio: 1 / 1;
+        height: 75px;
         font-weight: 500;
         color: #4b5563;
     }
@@ -343,6 +343,26 @@
     .setting-group input[type="radio"] {
         display: none;
     }
+
+    #num-questions-input {
+      height: 75px;
+      width: 100%;
+      text-align: center;
+      font-size: 1.75rem;
+      font-weight: 600;
+      border: 2px solid #d1d5db;
+      border-radius: 0.5rem;
+      transition: all 0.2s;
+      background-color: transparent;
+      color: #4b5563;
+    }
+   
+    #stage-mode-limited:checked ~ #num-questions-input {
+      border-color: #4f46e5;
+      background-color: #eef2ff;
+      color: #1f2937;
+    }
+    
 
     /* Tablet and larger screens */
     @media (min-width: 640px) {
@@ -433,15 +453,32 @@
   
   <div id="admin-settings-modal" class="modal-overlay hidden">
       <div class="modal-content">
-          <h2 class="text-center font-bold text-2xl mb-6">ตั้งค่าเกม</h2>
+          <h2 class="text-center font-bold text-2xl mb-4">ตั้งค่าเกม</h2>
           
           <div class="mb-4">
               <label for="time-limit-input" class="block text-gray-700 text-sm font-bold mb-2">เวลา (วินาที)</label>
               <input type="number" id="time-limit-input" value="180" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline text-center">
           </div>
 
-          <div class="mb-6">
-              <label class="block text-gray-700 text-sm font-bold mb-2">รูปแบบการแสดงผลลัพธ์</label>
+          <!-- Stage Settings Section -->
+          <div class="mb-4">
+              <label class="block text-gray-700 text-sm font-bold mb-2 text-center">จำนวนด่าน</label>
+              <div class="setting-group">
+                  <div class="relative">
+                      <input type="radio" id="stage-mode-limited" name="stageMode" value="limited" class="hidden" checked>
+                      <input type="number" id="num-questions-input" value="5" min="1">
+                  </div>
+                  <div id="unlimited-stage-container">
+                      <input type="radio" id="stage-mode-unlimited" name="stageMode" value="unlimited" disabled>
+                      <label for="stage-mode-unlimited">
+                          <span class="font-semibold text-base">ไม่จำกัดด่าน</span>
+                      </label>
+                  </div>
+              </div>
+          </div>
+
+          <div class="mb-4">
+              <label class="block text-gray-700 text-sm font-bold mb-2 text-center">รูปแบบการแสดงผลลัพธ์</label>
               <div class="setting-group">
                   <div>
                       <input type="radio" id="mode-immediate" name="leaderboardMode" value="immediate" checked>
@@ -592,7 +629,10 @@
     const otherRankingsList = $('#other-rankings-list');
     const otherRankingsContainer = $('#other-rankings-container');
     const toggleLeaderboardBtn = $('#toggle-leaderboard-btn');
-
+    const numQuestionsInput = $('#num-questions-input');
+    const stageModeUnlimitedRadio = $('#stage-mode-unlimited');
+    const stageModeLimitedRadio = $('#stage-mode-limited');
+    const unlimitedStageContainer = $('#unlimited-stage-container');
 
     // --- State Variables ---
     let db, auth, userId, currentPlayerName, isHost = false, currentGameId = null, isPracticeMode = false;
@@ -606,7 +646,7 @@
     let previousGameStatus = null;
     // Default game settings
     let gameSettings = {
-        numQuestions: 10,
+        numQuestions: 5,
         timeLimit: 180,
         timerMode: 'overall',
         scoringMode: 'speed',
@@ -768,9 +808,19 @@
         if (!isHost || !currentGameId) return;
 
         const timeLimit = parseInt($('#time-limit-input').value, 10) || 180;
-        const selectedMode = document.querySelector('input[name="leaderboardMode"]:checked').value;
+        const selectedLeaderboardMode = document.querySelector('input[name="leaderboardMode"]:checked').value;
+        const selectedStageMode = document.querySelector('input[name="stageMode"]:checked').value;
+
+        let numQuestions;
+        if (selectedStageMode === 'unlimited') {
+            numQuestions = 999; // Use a high number for "unlimited"
+        } else {
+            numQuestions = parseInt(numQuestionsInput.value, 10) || 5;
+        }
+        
         gameSettings.timeLimit = timeLimit;
-        gameSettings.leaderboardMode = selectedMode;
+        gameSettings.leaderboardMode = selectedLeaderboardMode;
+        gameSettings.numQuestions = numQuestions;
 
         adminSettingsModal.classList.add('hidden');
         
@@ -1047,11 +1097,14 @@
         const players = gameData.players || {};
         const sortedPlayers = Object.entries(players).sort((a, b) => (b[1].score || 0) - (a[1].score || 0));
         
+        const numQuestions = gameData.gameMode.numQuestions;
+        const isUnlimited = numQuestions > 500;
+
         playerList.innerHTML = sortedPlayers.map(([name, data]) => `
             <div class="player-row">
                 <span class="player-name">${name}</span>
                 <span class="player-progress">
-                    ${data.score || 0} คะแนน (${data.currentPuzzle >= gameData.gameMode.numQuestions ? 'สำเร็จ' : `ด่าน ${data.currentPuzzle + 1}`})
+                    ${data.score || 0} คะแนน (${data.currentPuzzle >= numQuestions ? 'สำเร็จ' : `ด่าน ${data.currentPuzzle + 1}`})
                 </span>
             </div>
         `).join('');
@@ -1072,9 +1125,12 @@
              }
         }
         
-        puzzleToShowIndex = Math.min(puzzleToShowIndex, gameData.gameMode.numQuestions - 1);
+        puzzleToShowIndex = Math.min(puzzleToShowIndex, numQuestions - 1);
         
-        puzzleProgressEl.textContent = `แสดงผลด่าน ${puzzleToShowIndex + 1} / ${gameData.gameMode.numQuestions}`;
+        const progressText = isUnlimited
+            ? `แสดงผลด่าน ${puzzleToShowIndex + 1}`
+            : `แสดงผลด่าน ${puzzleToShowIndex + 1} / ${numQuestions}`;
+        puzzleProgressEl.textContent = progressText;
         puzzleProgressEl.classList.remove('hidden');
         const puzzles = JSON.parse(gameData.puzzles);
         const numbers = puzzles[puzzleToShowIndex];
@@ -1095,8 +1151,10 @@
         playerScoreDisplay.classList.remove('hidden');
         
         const leaderboardMode = gameData.gameMode?.leaderboardMode || 'immediate';
+        const numQuestions = gameData.gameMode.numQuestions;
+        const isUnlimited = numQuestions > 500;
 
-        if (myData.currentPuzzle >= gameData.gameMode.numQuestions) {
+        if (myData.currentPuzzle >= numQuestions) {
             if (leaderboardMode === 'wait') {
                 gameBoard.classList.add('hidden');
                 playerFinishedView.classList.remove('hidden');
@@ -1109,7 +1167,11 @@
         } else {
             gameBoard.classList.remove('hidden');
             playerFinishedView.classList.add('hidden');
-            puzzleProgressEl.textContent = `ด่าน ${myData.currentPuzzle + 1} / ${gameData.gameMode.numQuestions}`;
+            
+            const progressText = isUnlimited
+                ? `ด่าน ${myData.currentPuzzle + 1}`
+                : `ด่าน ${myData.currentPuzzle + 1} / ${numQuestions}`;
+            puzzleProgressEl.textContent = progressText;
             puzzleProgressEl.classList.remove('hidden');
             
             const puzzles = JSON.parse(gameData.puzzles);
@@ -1311,7 +1373,7 @@
                         if (nextPuzzle < gameMode.numQuestions) {
                             updatePayload[`players.${currentPlayerName}.puzzleStartTime`] = serverTimestamp();
                         } else {
-                            updatePayload[`players.${currentPlayerName}.finishTime`] = serverTimestamp();
+                            updatePayload[`players.${playerName}.finishTime`] = serverTimestamp();
                         }
                         
                         transaction.update(gameRef, updatePayload);
@@ -1327,8 +1389,35 @@
         }
     }
     
+    function handleSettingsChange() {
+        const leaderboardMode = document.querySelector('input[name="leaderboardMode"]:checked').value;
+
+        // Enable/disable unlimited stages based on leaderboard mode
+        if (leaderboardMode === 'wait') {
+            stageModeUnlimitedRadio.disabled = false;
+            unlimitedStageContainer.classList.remove('opacity-60', 'cursor-not-allowed');
+            unlimitedStageContainer.querySelector('label').classList.remove('cursor-not-allowed');
+
+        } else { // 'immediate' mode
+            stageModeUnlimitedRadio.disabled = true;
+            // If unlimited was selected while 'wait' was active, force it back to 'limited'
+            if (stageModeUnlimitedRadio.checked) {
+                stageModeLimitedRadio.checked = true;
+            }
+            unlimitedStageContainer.classList.add('opacity-60', 'cursor-not-allowed');
+            unlimitedStageContainer.querySelector('label').classList.add('cursor-not-allowed');
+        }
+        
+        // Enable/disable the number input field
+        numQuestionsInput.disabled = !stageModeLimitedRadio.checked;
+    }
+
     // --- Event Listeners ---
-    $('#admin-icon-btn').addEventListener('click', () => showView('admin-login'));
+    // --- Event Listeners ---
+$('#admin-icon-btn').addEventListener('click', async () => {
+    isHost = true; 
+    await createGameRoom(); 
+});
     $('#admin-back-btn').addEventListener('click', () => showView('player-join'));
     
     $('#admin-login-btn').addEventListener('click', async () => {
@@ -1388,6 +1477,14 @@
             icon.className = 'fas fa-eye-slash';
         }
     });
+
+    numQuestionsInput.addEventListener('focus', () => {
+        stageModeLimitedRadio.checked = true;
+        handleSettingsChange();
+    });
+
+    $$('input[name="leaderboardMode"]').forEach(radio => radio.addEventListener('change', handleSettingsChange));
+    $$('input[name="stageMode"]').forEach(radio => radio.addEventListener('change', handleSettingsChange));
     
     // Clean up game room if host leaves the page
     window.addEventListener('beforeunload', () => {
@@ -1400,7 +1497,9 @@
     // --- Initial Load ---
     initialize();
     showView('player-join');
+    handleSettingsChange(); // Set initial state for settings UI
 
   </script>
 </body>
 </html>
+
