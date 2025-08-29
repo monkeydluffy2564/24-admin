@@ -606,7 +606,7 @@
     let previousGameStatus = null;
     // Default game settings
     let gameSettings = {
-        numQuestions: 5,
+        numQuestions: 10,
         timeLimit: 180,
         timerMode: 'overall',
         scoringMode: 'speed',
@@ -1328,15 +1328,11 @@
     }
     
     // --- Event Listeners ---
-    // --- Event Listeners ---
-$('#admin-icon-btn').addEventListener('click', async () => {
-    isHost = true; 
-    await createGameRoom(); 
-});
+    $('#admin-icon-btn').addEventListener('click', () => showView('admin-login'));
     $('#admin-back-btn').addEventListener('click', () => showView('player-join'));
     
     $('#admin-login-btn').addEventListener('click', async () => {
-        if ($('#admin-password-input').value === '') { 
+        if ($('#admin-password-input').value === '8899') { 
             isHost = true; 
             await createGameRoom(); 
         } else { 
@@ -1408,4 +1404,3 @@ $('#admin-icon-btn').addEventListener('click', async () => {
   </script>
 </body>
 </html>
-
